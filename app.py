@@ -6,12 +6,12 @@ app = Flask(__name__)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-@app.route("/")
+@app.route("/images/upload")
 def index():
 	return render_template("upload.html")
 
-@app.route("/upload", methods=['POST'])
-def upload():
+@app.route("/images/uploaded", methods=['POST'])
+def upload_img():
 	target = os.path.join(APP_ROOT, "images/")
 	print(target)
 
@@ -24,11 +24,16 @@ def upload():
 		file.save(destination)
 		svg_to_png(destination, filename)
 
-	return render_template("complete.html", image_name=filename)
+	return get_gallery()
 
-@app.route('/upload/<filename>')
+@app.route('/images/<filename>')
 def send_image(filename):
 	return send_from_directory('static',filename)
+
+@app.route('/images/gallery', methods=['POST'])
+def get_gallery():
+	images = os.listdir("./static/")
+	return render_template("gallery.html", images=images)
 
 if __name__ == "__main__":
 	app.run(port=5000, debug=True)
