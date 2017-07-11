@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_from_directory
 import os
 import shutil
 from svg_to_png2 import svg_to_png
@@ -30,8 +30,8 @@ def upload_img():
             filename = _file.filename
             destination = "/".join([target, filename])
             _file.save(destination)
-            my_path, my_format = svg_to_png(destination, filename)
-            return send_file(my_path, mimetype='image/{0}'.format(my_format))
+            my_path, my_format, img_name = svg_to_png(destination, filename)
+            return send_from_directory('static', img_name, mimetype='image/.{0}'.format(my_format))
 
         except:
             return render_template("error.html")
