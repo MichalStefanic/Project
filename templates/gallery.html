@@ -5,11 +5,11 @@
 	<title>Title</title>
 </head>
 <body>
-<h1> {{ images }} </h1>
 
-<hr>
 {% for image in images %}
 
+<h1> {{ image }} </h1>
+<hr>
 <img src=" {{url_for('send_image', filename=image)}} ">
 
 {% endfor %}
