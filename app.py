@@ -17,14 +17,16 @@ def upload_img():
 
 	if not os.path.isdir(target):
 		os.mkdir(target)
-
-	for file in request.files.getlist("file"):
-		filename = file.filename
-		destination = "/".join([target, filename])
-		file.save(destination)
-		svg_to_png(destination, filename)
-
-	return get_gallery()
+	try:
+		for file in request.files.getlist("file"):
+			filename = file.filename
+			destination = "/".join([target, filename])
+			file.save(destination)
+			svg_to_png(destination, filename)
+	except:
+		return render_template("Error.html")
+	else:
+		return get_gallery()
 
 @app.route('/images/<filename>')
 def send_image(filename):
