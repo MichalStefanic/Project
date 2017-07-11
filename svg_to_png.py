@@ -2,10 +2,10 @@ import os
 import cairosvg
 
 def svg_to_png(path, img_name):
-    target = os.path.abspath("static/")
+    target = os.path.abspath('static/')
 
     try:
-        png_output = os.path.join(target,img_name).split(".")[0]+".png"
+        png_output = os.path.join(target,img_name).split('.')[0]+'.png'
         cairosvg.svg2png(
             url=path, write_to=png_output)
 
