@@ -5,27 +5,28 @@ from svg_to_png2 import svg_to_png
 
 app = Flask(__name__)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))  # Repository path
 
 
 @app.route('/images/upload', methods=['GET', 'POST'])
 def upload_img():
     if request.method == 'GET':
-        return render_template('upload2.html')
+        return render_template('upload2.html')  # Template for uploading images
     
     elif request.method == 'POST':
 
-        target = os.path.join(APP_ROOT, 'images/')
+        target = os.path.join(APP_ROOT, 'images/')  #  Empty folder for upload images
         if os.path.isdir(target):
             shutil.rmtree(target)
         os.mkdir(target)
 
-        path = os.path.join(APP_ROOT, 'static/')
+        path = os.path.join(APP_ROOT, 'static/')   # Empty folder for converted images
         if os.path.isdir(path):
             shutil.rmtree(path)
         os.mkdir(path)
 
         try:
+            '''Save images and convert to appropriate format'''
             _file = request.files['file']
             filename = _file.filename
             destination = '/'.join([target, filename])
@@ -34,7 +35,7 @@ def upload_img():
             return send_from_directory('static', img_name, mimetype='image/.{0}'.format(my_format))
 
         except:
-            return render_template('error.html')
+            return render_template('error.html') # Error for none images uploaded
 
 
 if __name__ == '__main__':

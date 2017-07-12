@@ -5,38 +5,37 @@ from svg_to_png import svg_to_png
 
 app = Flask(__name__)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Repository path
 
 
 @app.route('/images/upload')
 def index():
-    try:
-        path = os.path.join(APP_ROOT, 'static/')
-        target = os.path.join(APP_ROOT, 'images/')
-        shutil.rmtree(path)
-        shutil.rmtree(target)
-        os.mkdir(path)
-    except:
-        os.mkdir(path)
-    return render_template('upload.html')
+    return render_template('upload.html') # Template for uploading images
 
 
 @app.route('/images/uploaded', methods=['POST'])
 def upload_img():
-    target = os.path.join(APP_ROOT, 'images/')
+    '''Post method for upload images'''
+    target = os.path.join(APP_ROOT, 'images/')  #  Empty folder for upload images
+    if os.path.isdir(target):
+        shutil.rmtree(target)
+    os.mkdir(target)
 
-    if not os.path.isdir(target):
-        os.mkdir(target)
+    path = os.path.join(APP_ROOT, 'static/')    # Empty folder for converted images
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    os.mkdir(path)
+
 
     try:
         for file in request.files.getlist('file'):
             filename = file.filename
             destination = '/'.join([target, filename])
             file.save(destination)
-            svg_to_png(destination, filename)
+            svg_to_png(destination, filename)       # Converting function
 
     except:
-        return render_template('error.html')
+        return render_template('error.html')        # Error template for none image uploaded
 
     else:
         return get_gallery()
@@ -44,11 +43,13 @@ def upload_img():
 
 @app.route('/images/<filename>')
 def send_image(filename):
+    '''Response'''
     return send_from_directory('static',filename)
 
 
 @app.route('/images/uploaded', methods=['POST'])
 def get_gallery():
+    '''Displays images on websites'''
     images = os.listdir('./static/')
     return render_template('gallery.html', images=images)
 
