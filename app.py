@@ -25,13 +25,15 @@ def upload_img():
             return response
 
         except:
+            # error msg if nothing was uploaded
             return jsonify({
                 'status': 'error',
-                'msg': 'No image uploaded / Bad format'
+                'msg': 'No image uploaded'
             })
 
 
 def handle_image(input_file):
+    '''Check uploaded files and choose what to do next'''
     filename = input_file.filename
     file_format = input_file.mimetype # get mimetype of file
 
@@ -52,9 +54,9 @@ def handle_image(input_file):
 
 
 def svg_to_png(svg_img):
+    '''Convert svg image to png format'''
     raw_svg = svg_img.stream.read()
 
-    # convert svg to png
     png_img = svg2png(bytestring=raw_svg)
 
     return png_img
