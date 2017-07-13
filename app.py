@@ -17,9 +17,9 @@ def upload_img():
 
             # create response with image
             response = make_response(image)
-            # display image on webpage
+
             response.headers['Content-Type'] = content_type
-            # or save image to disk
+            # after uncomment line below, response will save image to disk
             # response.headers['Content-Disposition'] = 'attachment; filename=file_name' 
 
             return response
@@ -36,8 +36,6 @@ def handle_image(input_file):
     '''Check uploaded files and choose what to do next'''
     filename = input_file.filename
     file_format = input_file.mimetype # get mimetype of file
-
-    print('FILE FORMAT: ', file_format)
 
     if file_format == 'image/svg+xml':
         png_img = svg_to_png(input_file) # if file is svg convert it to png
