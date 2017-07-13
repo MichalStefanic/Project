@@ -1,57 +1,60 @@
-from flask import Flask, request, render_template, send_from_directory
-import os
-import shutil
-from svg_to_png import svg_to_png
+from flask import Flask, request, render_template, jsonify, make_response
+from cairosvg import svg2png
 
 app = Flask(__name__)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Repository path
 
-
-@app.route('/images/upload')
-def index():
-    return render_template('upload.html') # Template for uploading images
-
-
-@app.route('/images/uploaded', methods=['POST'])
+@app.route('/images/upload', methods=['GET', 'POST'])
 def upload_img():
-    '''Post method for upload images'''
-    target = os.path.join(APP_ROOT, 'images/')  #  Empty folder for upload images
-    if os.path.isdir(target):
-        shutil.rmtree(target)
-    os.mkdir(target)
+    if request.method == 'GET':
+        # render template for uploading image
+        return render_template('upload.html')
+    
+    elif request.method == 'POST':
+        try:
+            _file = request.files['file']
+            image, file_name, content_type = handle_image(_file)
 
-    path = os.path.join(APP_ROOT, 'static/')    # Empty folder for converted images
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-    os.mkdir(path)
+            # create response with image
+            response = make_response(image)
+            response.headers['Content-Type'] = content_type
+            # response.headers['Content-Disposition'] = 'attachment; filename=file_name'
+
+            return response
+
+        except:
+            return jsonify({
+                'status': 'error',
+                'msg': 'No image uploaded / Bad format'
+            })
 
 
-    try:
-        for file in request.files.getlist('file'):
-            filename = file.filename
-            destination = '/'.join([target, filename])
-            file.save(destination)
-            svg_to_png(destination, filename)       # Converting function
+def handle_image(input_file):
+    filename = input_file.filename
+    file_format = input_file.mimetype
 
-    except:
-        return render_template('error.html')        # Error template for none image uploaded
+    print('FILE FORMAT: ', file_format)
+
+    if file_format == 'image/svg+xml':
+        png_img = svg_to_png(input_file)
+
+        return png_img, '{0}.png'.format(filename.split('.')[0]), 'image/png'
+
+    elif 'image' in file_format:
+
+        return input_file.stream.read(), filename, file_format
 
     else:
-        return get_gallery()
+        raise Exception('Not image!')
 
 
-@app.route('/images/<filename>')
-def send_image(filename):
-    '''Response'''
-    return send_from_directory('static',filename)
+def svg_to_png(svg_img):
+    raw_svg = svg_img.stream.read()
 
+    # convert svg to png
+    png_img = svg2png(bytestring=raw_svg)
 
-@app.route('/images/uploaded', methods=['POST'])
-def get_gallery():
-    '''Displays images on websites'''
-    images = os.listdir('./static/')
-    return render_template('gallery.html', images=images)
+    return png_img
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
