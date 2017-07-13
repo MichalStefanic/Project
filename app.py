@@ -1,4 +1,6 @@
 from flask import Flask, request, render_template, jsonify, make_response
+import imghdr
+import xml.etree.cElementTree as et
 from cairosvg import svg2png
 
 app = Flask(__name__)
@@ -28,33 +30,42 @@ def upload_img():
             # error msg if nothing was uploaded
             return jsonify({
                 'status': 'error',
-                'msg': 'No image uploaded'
+                'msg': 'No image uploaded or wrong format file'
             })
 
 
 def handle_image(input_file):
     '''Check uploaded files and choose what to do next'''
     filename = input_file.filename
-    file_format = input_file.mimetype # get mimetype of file
+    raw_img = input_file.stream.read() # bytes string
+    try:
+        if is_svg(raw_img):
+            png_img = svg_to_png(raw_img) # if file is svg convert it to png
+            return png_img, '{0}.png'.format(filename.split('.')[0]), 'image/png'
 
-    if file_format == 'image/svg+xml':
-        png_img = svg_to_png(input_file) # if file is svg convert it to png
-
-        return png_img, '{0}.png'.format(filename.split('.')[0]), 'image/png'
-
-    elif 'image' in file_format:
-        # if image is in other format just return without changes
-        return input_file.stream.read(), filename, file_format
-
-    else:
-        # error if file is not image
-        raise Exception('Not image!')
+    except:
+        file_format = imghdr.what(filename, h=raw_img) # Detect if file is image
+        if file_format is None:
+            # error if file is not image
+            raise Exception('Not image!')
+        else:
+            return raw_img, filename, 'image/{0}'.format(file_format)
 
 
-def svg_to_png(svg_img):
+def is_svg(file):
+    '''Detect if file is svg'''
+    tag = None
+
+    try:
+        for x in et.fromstring(file):
+            tag = x.tag
+            break
+    except et.ParseError:
+        pass
+    return '{http://www.w3.org/2000/svg}' in tag
+
+def svg_to_png(raw_svg):
     '''Convert svg image to png format'''
-    raw_svg = svg_img.stream.read()
-
     png_img = svg2png(bytestring=raw_svg)
 
     return png_img
